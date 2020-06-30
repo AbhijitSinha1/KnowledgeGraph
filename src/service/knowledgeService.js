@@ -1,7 +1,6 @@
 const fetch = require('node-fetch');
 var parser = require('xml2json');
-const LOGGER = require('../utils/Logger');
-const Logger = require('../utils/Logger');
+const Logger = require('clapboard');
 const Log = new Logger();
 
 const search = (term) => {

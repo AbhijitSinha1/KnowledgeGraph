@@ -2,7 +2,7 @@ const express = require('express');
 const { port } = require('./config');
 const path = require('path');
 
-const LOGGER = require('./src/utils/Logger');
+const LOGGER = require('clapboard');
 const RH = require('./src/utils/ResponseHandler');
 const KS = require('./src/service/knowledgeService');
 
