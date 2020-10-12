@@ -1,15 +1,17 @@
 <html>
 
 <head>
+  <title>Knowledge Graph</title>
   <style type="text/css">
   </style>
 </head>
 
 <body>
   <input placeholder="Term" id="term" />
-  <input placeholder="Depth" id="depth" type="number"/>
+  <input placeholder="Depth" id="depth" type="number" />
   <button id="search">OK</button>
-  <span>Inspired by <a target="blank" href="https://medium.com/applied-data-science/the-google-vs-trick-618c8fd5359f">this medium post</a></span>
+  <span>Inspired by <a target="blank"
+      href="https://medium.com/applied-data-science/the-google-vs-trick-618c8fd5359f">this medium post</a></span>
   <div id="container"></div>
   <script src="/js/vis-network.min.js"></script>
   <script>
@@ -26,7 +28,7 @@
         }
         for (const peer in message[node]) {
           if (edgeObj[peer] && edgeObj[peer][node]) {
-            edgeObj[peer][node]+=message[node][peer];
+            edgeObj[peer][node] += message[node][peer];
           } else {
             if (!edgeObj[node]) {
               edgeObj[node] = {};
@@ -39,20 +41,17 @@
         }
       }
 
-      console.log(edgeObj);
-      
-
       const nodeList = [], edgeList = [];
 
-      for(const node in nodeObj) {
+      for (const node in nodeObj) {
         nodeList.push({
           id: nodeObj[node],
           label: node
         })
       }
 
-      for(const from in message) {
-        for(const to in message[from]) {
+      for (const from in message) {
+        for (const to in message[from]) {
           if (!edgeObj[from] || !edgeObj[from][to]) {
             continue;
           }
@@ -79,9 +78,21 @@
       };
       var options = {};
       var network = new vis.Network(container, data, options);
+
+      network.on('click', function (properties) {
+        var ids = properties.nodes;
+        var clickedNodes = nodes.get(ids);
+        const url = `https://www.google.com/search?q=${clickedNodes[0].label}`;
+        window.open(url, '_blank');
+      });
+
+      network.on('oncontext', function (params) {
+        params.event.preventDefault();
+        const id = network.getNodeAt(params.pointer.DOM);
+        const node = nodes.get(id);
+        console.log(node.label);
+      })
     });
-
-
   </script>
 </body>
 
