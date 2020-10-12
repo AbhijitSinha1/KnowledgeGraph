@@ -14,6 +14,7 @@
       href="https://medium.com/applied-data-science/the-google-vs-trick-618c8fd5359f">this medium post</a></span>
   <div id="container"></div>
   <script src="/js/vis-network.min.js"></script>
+  <script src="/js/sha256.min.js"></script>
   <script>
     document.getElementById('search').addEventListener('click', async () => {
       const term = document.getElementById('term').value;
@@ -63,7 +64,6 @@
         }
       }
 
-      // console.log({nodeList, edgeList});
       // create an array with nodes
       var nodes = new vis.DataSet(nodeList);
 
