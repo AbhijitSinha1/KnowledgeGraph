@@ -8,41 +8,114 @@
 
 <body>
   <input placeholder="Term" id="term" />
-  <input placeholder="Depth" id="depth" type="number" />
-  <button id="search">OK</button>
   <span>Inspired by <a target="blank"
       href="https://medium.com/applied-data-science/the-google-vs-trick-618c8fd5359f">this medium post</a></span>
   <div id="container"></div>
   <script src="/js/vis-network.min.js"></script>
   <script src="/js/sha256.min.js"></script>
   <script>
-    document.getElementById('search').addEventListener('click', async () => {
-      const term = document.getElementById('term').value;
-      const depth = document.getElementById('depth').value;
-      const { message } = await (await fetch(`/api/v1/knowledge?term=${term}&depth=${depth}`)).json();
-      const nodeObj = {}, edgeObj = {};
-      let id = 0;
 
-      for (const node in message) {
-        if (!nodeObj[node]) {
-          nodeObj[node] = id++;
+    let doneSearches = [];
+
+    var container = document.getElementById('container');
+    var searchTerm = document.getElementById("term");
+
+    var options = {};
+    var nodes;
+    var edges;
+    var network;
+
+    searchTerm.addEventListener('keypress', (event) => {
+      if (event.keyCode == 13) {
+        init();
+        search(searchTerm.value);
+      }
+    })
+
+    const init = function () {
+      nodes = new vis.DataSet();
+      edges = new vis.DataSet();
+      network = new vis.Network(container, { nodes, edges }, options);
+      doneSearches = [];
+
+
+      network.on('click', function (properties) {
+        var ids = properties.nodes;
+        var clickedNodes = nodes.get(ids);
+        const url = `https://www.google.com/search?q=${clickedNodes[0].label}`;
+        window.open(url, '_blank');
+      });
+
+      network.on('oncontext', async function (params) {
+        params.event.preventDefault();
+        const id = network.getNodeAt(params.pointer.DOM);
+        if (id == undefined) {
+          return;
         }
-        for (const peer in message[node]) {
-          if (edgeObj[peer] && edgeObj[peer][node]) {
-            edgeObj[peer][node] += message[node][peer];
-          } else {
-            if (!edgeObj[node]) {
-              edgeObj[node] = {};
-            }
-            edgeObj[node][peer] = message[node][peer];
-          }
-          if (!nodeObj[peer]) {
-            nodeObj[peer] = id++;
-          }
-        }
+        const node = nodes.get(id);
+        console.log(id, node.label);
+
+        await search(node.label);
+      })
+    }
+
+    const search = async function (term) {
+
+      if (doneSearches.includes(term)) {
+        return;
       }
 
+      const { message } = await (await fetch(`/api/v1/knowledge?term=${term}&depth=0`)).json();
+      doneSearches.push(term);
+
+      const { nodeList, edgeList } = buildNodesEdges(message);
+
+      updateNetwork(nodeList, edgeList);
+    }
+
+    const updateNetwork = function (nodeList, edgeList) {
+      // update the array of nodes
+      nodes.update(nodeList);
+
+      // update the array of edges
+      edges.add(edgeList);
+    }
+
+    const buildNodesEdges = function (message) {
+
       const nodeList = [], edgeList = [];
+      const nodeObj = {}, edgeObj = {};
+
+      for (const node in message) {
+
+        if (!nodeObj[node]) {
+          nodeObj[node] = sha256(node);
+        }
+
+        if (!edgeObj[node]) {
+          edgeObj[node] = {};
+        }
+
+        for (const peer in message[node]) {
+
+          if (!nodeObj[peer]) {
+            nodeObj[peer] = sha256(peer);
+          }
+
+          if (edgeObj[peer] == undefined) {
+            edgeObj[peer] = {};
+            edgeObj[peer][node] = 0;
+          }
+
+          if (edgeObj[node][peer] == undefined) {
+            edgeObj[node][peer] = 0;
+          }
+
+          edgeObj[peer][node] += message[node][peer];
+          edgeObj[node][peer] += message[node][peer];
+
+        }
+      }
 
       for (const node in nodeObj) {
         nodeList.push({
@@ -64,35 +137,8 @@
         }
       }
 
-      // create an array with nodes
-      var nodes = new vis.DataSet(nodeList);
-
-      // create an array with edges
-      var edges = new vis.DataSet(edgeList);
-
-      // create a network
-      var container = document.getElementById('container');
-      var data = {
-        nodes: nodes,
-        edges: edges
-      };
-      var options = {};
-      var network = new vis.Network(container, data, options);
-
-      network.on('click', function (properties) {
-        var ids = properties.nodes;
-        var clickedNodes = nodes.get(ids);
-        const url = `https://www.google.com/search?q=${clickedNodes[0].label}`;
-        window.open(url, '_blank');
-      });
-
-      network.on('oncontext', function (params) {
-        params.event.preventDefault();
-        const id = network.getNodeAt(params.pointer.DOM);
-        const node = nodes.get(id);
-        console.log(node.label);
-      })
-    });
+      return { nodeList, edgeList };
+    }
   </script>
 </body>
 
