@@ -40,9 +40,23 @@
 
 
       network.on('click', function (properties) {
-        var ids = properties.nodes;
-        var clickedNodes = nodes.get(ids);
-        const url = `https://www.google.com/search?q=${clickedNodes[0].label}`;
+        var nodeIds = properties.nodes;
+        var edgeIds = properties.edges;
+
+        if (edgeIds.length == 0) {
+          return;
+        }
+
+        let url = null;
+
+        if (nodeIds.length == 0) {
+          const { from, to } = edges.get(edgeIds[0]);
+          var clickedNodes = nodes.get([from, to]);
+          url = `https://www.google.com/search?q=${clickedNodes[0].label}+vs+${clickedNodes[1].label}`;
+        } else {
+          var clickedNodes = nodes.get(nodeIds);
+          url = `https://www.google.com/search?q=${clickedNodes[0].label}`;
+        }
         window.open(url, '_blank');
       });
 
