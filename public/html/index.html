@@ -75,6 +75,8 @@
 
     const search = async function (term) {
 
+      term = term.toLowerCase();
+
       if (doneSearches.includes(term)) {
         return;
       }

@@ -22,4 +22,4 @@ app.get('/api/v1/knowledge', (req, res) => {
         .catch(RH.handleError(res));
 })
 
-app.listen(port, () => Log.info(`app listening to port: ${port}`));
+app.listen(port, '0.0.0.0', () => Log.info(`app listening to port: ${port}`));

@@ -11,8 +11,10 @@ const search = (term) => {
         .then(result => (result.toplevel.CompleteSuggestion ? (result.toplevel.CompleteSuggestion instanceof Array ? result.toplevel.CompleteSuggestion : [result.toplevel.CompleteSuggestion]) : []).map(z => z.suggestion.data).map(z => z.split(' vs ')).filter(z => z.length > 1).map(z => z[1]))
 }
 
-const buildMap = async (inTerm, inRounds = 5) => {
+const buildMap = async (inTerm, inRounds = 0) => {
     const map = {};
+
+    inTerm = inTerm.toLowerCase();
 
     const terms = [{ term: inTerm, round: 0 }];
     const searchedTerms = [];
@@ -25,6 +27,8 @@ const buildMap = async (inTerm, inRounds = 5) => {
         const results = await search(term);
 
         results.forEach((result, idx, arr) => {
+
+            result = result.toLowerCase();
 
             if (searchedTerms.indexOf(result) < 0 && round < inRounds) {
                 terms.push({ term: result, round: round + 1 });
