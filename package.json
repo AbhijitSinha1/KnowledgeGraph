@@ -16,6 +16,7 @@
     "clapboard": "^1.0.2",
     "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
+    "mongoose": "^5.10.9",
     "node-fetch": "^2.6.0",
     "xml2json": "^0.12.0"
   }
