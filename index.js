@@ -16,8 +16,8 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/v1/knowledge', (req, res) => {
-    const { term, depth } = req.query;
-    return KS.buildMap(term, depth)
+    const { term } = req.query;
+    return KS.buildMap(term)
         .then(RH.handleSuccess(res))
         .catch(RH.handleError(res));
 })

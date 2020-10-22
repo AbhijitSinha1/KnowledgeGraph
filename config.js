@@ -9,5 +9,8 @@ mongoose.connect(`mongodb://${dbhost}:${dbport}/${database}`, {
 });
 
 module.exports = {
+  cache: {
+    expiry: 14 * 24 * 3600 * 000 // 14 days
+  },
   port: options.port || 3000,
 };

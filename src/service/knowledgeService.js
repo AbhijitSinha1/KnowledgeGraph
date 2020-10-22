@@ -2,66 +2,65 @@ const fetch = require("node-fetch");
 var parser = require("xml2json");
 const Logger = require("clapboard");
 const dbs = require("./dbService");
+const { cache: { expiry } } = require('../../config');
 const Log = new Logger();
 
 const search = (term) => {
-  return fetch(
-    `http://suggestqueries.google.com/complete/search?output=toolbar&gl=us&hl=en&q=${term}+vs`
-  )
-    .then((z) => z.text())
-    .then(parser.toJson)
-    .then(JSON.parse)
-    .then((result) =>
-      (result.toplevel.CompleteSuggestion
-        ? result.toplevel.CompleteSuggestion instanceof Array
-          ? result.toplevel.CompleteSuggestion
-          : [result.toplevel.CompleteSuggestion]
-        : []
-      )
-        .map((z) => z.suggestion.data)
-        .map((z) => z.split(" vs "))
-        .filter((z) => z.length > 1)
-        .map((z) => z[1])
-    );
+
+    return fetch(
+        `http://suggestqueries.google.com/complete/search?output=toolbar&gl=us&hl=en&q=${term}+vs`
+    )
+        .then((z) => z.text())
+        .then(parser.toJson)
+        .then(JSON.parse)
+        .then((result) =>
+            (result.toplevel.CompleteSuggestion
+                ? result.toplevel.CompleteSuggestion instanceof Array
+                    ? result.toplevel.CompleteSuggestion
+                    : [result.toplevel.CompleteSuggestion]
+                : []
+            )
+                .map((z) => z.suggestion.data)
+                .map((z) => z.split(" vs "))
+                .filter((z) => z.length > 1)
+                .map((z) => z[1])
+        );
 };
 
-const buildMap = async (inTerm, inRounds = 0) => {
-  const map = {};
+const buildMap = async (inTerm) => {
+    inTerm = inTerm.toLowerCase();
 
-  inTerm = inTerm.toLowerCase();
+    const map = {
+        [inTerm]: {}
+    };
 
-  try {
-    await dbs.save(inTerm);
-  } catch (e) {
-    Log.error(e);
-  }
+    const term = await dbs.fetch(inTerm);
 
-  const terms = [{ term: inTerm, round: 0 }];
-  const searchedTerms = [];
-  let rounds = 0;
+    if (term == null || Date.now() - term.lastCachedOn > expiry || term.result == null) {
 
-  while (terms.length > 0) {
-    const { term, round } = terms.pop();
+        let results = [];
 
-    searchedTerms.push(term);
-    const results = await search(term);
+        try {
+            results = await search(inTerm);
+        } catch (e) {
+            Log.error(e);
+        }
 
-    results.forEach((result, idx, arr) => {
-      result = result.toLowerCase();
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i].toLowerCase();
+            map[inTerm][result] = results.length - i;
+        }
 
-      if (searchedTerms.indexOf(result) < 0 && round < inRounds) {
-        terms.push({ term: result, round: round + 1 });
-      }
+        try {
+            await dbs.save(inTerm, map[inTerm]);
+        } catch (e) {
+            Log.error(e);
+        }
+    } else {
+        map[inTerm] = term.result;
+    }
 
-      if (!map[term]) {
-        map[term] = {};
-      }
-
-      map[term][result] = arr.length - idx;
-    });
-  }
-
-  return map;
+    return map;
 };
 
 module.exports = { buildMap };
