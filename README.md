@@ -4,7 +4,7 @@ This tool build a knowledge graph for any given search term. Using the knowledge
 
 The tool was inspired by [this medium post](https://medium.com/applied-data-science/the-google-vs-trick-618c8fd5359f).
 
-You can play around with this tool [here](http://13.232.174.42:3000/)
+You can play around with this tool [here](https://discover.abhijitsinha.tech/)
 
 ## Pre requisite
 
