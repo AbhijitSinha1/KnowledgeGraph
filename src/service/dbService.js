@@ -23,6 +23,7 @@ module.exports.save = async function (word, result) {
   }
 
   term.lastCachedOn = new Date();
+  lastSearchedOn = new Date();
   term.result = result;
   await term.save();
 };
