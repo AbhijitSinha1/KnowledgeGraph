@@ -7,7 +7,7 @@ module.exports.fetch = async function (word) {
     const { count } = term;
 
     term.count = count + 1;
-    term.lastSearchedOn = new Date();
+    term.lastSearchedOn = Date.now();
     await term.save();
   }
 
@@ -19,11 +19,11 @@ module.exports.save = async function (word, result) {
   let term = await Term.findOne({ term: word });
 
   if (term == null) {
-    term = new Term({ term: word, count: 1, firstSearchedOn: new Date() });
+    term = new Term({ term: word, count: 1, firstSearchedOn: Date.now() });
   }
 
-  term.lastCachedOn = new Date();
-  lastSearchedOn = new Date();
+  term.lastCachedOn = Date.now();
+  lastSearchedOn = Date.now();
   term.result = result;
   await term.save();
 };
